@@ -1,7 +1,8 @@
 """
 Test Suite for RPG Simulator Textual TUI Application.
-Verifies the 'Eye of the Beholder' First-Person Viewport, 'Undertale'-style Action Buttons,
-Essence Lens Mode, Procedural Trait Synthesizer Trigger, and Calendar Slot Advance.
+Verifies the 'Eye of the Beholder' First-Person Viewport, Compact Command Bar,
+Essence Lens Mode, Location Travel Modal, Trait Inspection Modal,
+Player-Chosen Synthesis Modal, Target Trait Modification Modal, and Time Slot Advancement.
 """
 
 import os
@@ -21,7 +22,7 @@ class TestRPGSimulatorUI(unittest.TestCase):
     """Textual TUI 介面全自動化測試套件"""
 
     def test_app_headless_workflow(self):
-        """透過 Textual Pilot 模擬使用者點擊按鈕與快捷鍵操作"""
+        """透過 Textual Pilot 模擬使用者點擊按鈕、彈窗互動與快捷鍵操作"""
         async def run_scenario():
             app = RPGSimulatorApp()
             async with app.run_test(size=(120, 36)) as pilot:
@@ -33,15 +34,48 @@ class TestRPGSimulatorUI(unittest.TestCase):
                 self.assertIsNotNone(initial_npc)
                 self.assertEqual(initial_npc.name, "商隊首領·托馬斯")
 
-                # 2. 測試按鈕 [1] 換向探索 / 移動巡視
-                await pilot.click("#btn_move")
+                # 2. 測試地點選擇彈窗 (LocationSelectModal) - 自選前往目的地，不盲目浪費 AP
+                await pilot.press("1")
+                await pilot.pause()
+                self.assertGreater(len(app.screen_stack), 1)
+                await pilot.press("2")  # 選擇前往第 2 處: 治安戍衛守備所
+                await pilot.pause()
                 self.assertEqual(app.hero.current_ap, 9)
                 self.assertEqual(app.get_current_location()["id"], "loc_garrison")
                 guard_npc = app.get_facing_character()
                 self.assertIsNotNone(guard_npc)
                 self.assertEqual(guard_npc.name, "治安衛士·艾蓮娜")
 
-                # 3. 測試按鈕 [4] 因果之眼 (Essence Lens)
+                # 3. 測試主角狀態與詞條百科、行囊檢視彈窗 (InspectModal)
+                await pilot.press("i")
+                await pilot.pause()
+                self.assertGreater(len(app.screen_stack), 1)
+                await pilot.press("escape")
+                await pilot.pause()
+                self.assertEqual(len(app.screen_stack), 1)
+
+                # 4. 測試自選原料之本質編織彈窗 (TraitSynthesizeModal)
+                prev_trait_count = len(app.hero.all_traits)
+                await pilot.press("3")
+                await pilot.pause()
+                self.assertGreater(len(app.screen_stack), 1)
+                await pilot.press("1")  # 選擇原料一
+                await pilot.pause()
+                await pilot.press("2")  # 選擇原料二並啟動融合
+                await pilot.pause()
+                self.assertIn("本質融合成功", app.dialogue_text)
+                self.assertGreater(len(app.hero.all_traits), prev_trait_count)
+                self.assertGreater(len(app.hero.custom_traits), 0)
+
+                # 5. 測試修改他人詞條彈窗 (ModifyTargetTraitModal)
+                await pilot.press("m")
+                await pilot.pause()
+                self.assertGreater(len(app.screen_stack), 1)
+                await pilot.press("2")  # 選擇 [2] 洗鍊重塑變異
+                await pilot.pause()
+                self.assertIn("因果洗鍊成功", app.dialogue_text)
+
+                # 6. 測試按鈕點擊：因果之眼 (Essence Lens)
                 self.assertFalse(app.essence_lens_active)
                 await pilot.click("#btn_lens")
                 self.assertTrue(app.essence_lens_active)
@@ -49,39 +83,29 @@ class TestRPGSimulatorUI(unittest.TestCase):
                 await pilot.click("#btn_lens")
                 self.assertFalse(app.essence_lens_active)
 
-                # 4. 測試按鈕 [2] 角色互動 (Converse)
+                # 7. 測試角色交談 (Converse)
                 prev_ap = app.hero.current_ap
                 await pilot.click("#btn_interact")
-                # 交談消耗 2 AP
                 self.assertEqual(app.hero.current_ap, prev_ap - 2)
                 self.assertIn("艾蓮娜", app.dialogue_text)
 
-                # 5. 測試按鈕 [3] 本質編織 (Trait Synthesizer)
-                prev_trait_count = len(app.hero.all_traits)
-                await pilot.click("#btn_fuse")
-                self.assertIn("本質融合成功", app.dialogue_text)
-                self.assertGreater(len(app.hero.all_traits), prev_trait_count)
-
-                # 6. 測試按鈕 [5] 組織政務 (Council Administration)
+                # 8. 測試組織政務 (Council)
                 await pilot.click("#btn_council")
                 self.assertIn("代表城邦", app.dialogue_text)
 
-                # 7. 測試按鈕 [6] 時段推進 (Advance Slot)
+                # 9. 測試推進時段 (Advance Slot)
                 cal = app.world.calendar
                 initial_slot = cal.current_slot
                 await pilot.click("#btn_next_slot")
                 self.assertNotEqual(cal.current_slot, initial_slot)
                 self.assertEqual(app.hero.current_ap, 10)  # 時段推進 AP 重設為 10
 
-                # 8. 測試全套鍵盤快捷鍵 (1-6, c, tab, space)
-                await pilot.press("c")      # 切換目標
-                await pilot.press("1")      # 換向探索
-                await pilot.press("4")      # 切換因果之眼
+                # 10. 測試切換目標與快捷鍵
+                await pilot.press("c")
+                await pilot.press("tab")  # Tab 開啟因果之眼
                 self.assertTrue(app.essence_lens_active)
-                await pilot.press("tab")    # Tab 再次切換因果之眼
+                await pilot.press("tab")  # Tab 關閉因果之眼
                 self.assertFalse(app.essence_lens_active)
-                await pilot.press("space")  # Space 推進時段
-                await pilot.press("5")      # 組織政務
 
         asyncio.run(run_scenario())
 
@@ -97,7 +121,7 @@ def run_tests():
 
     if result.wasSuccessful():
         print("\n" + "=" * 75)
-        print("  ★ 魔眼殺機主視界、因果之眼透視、Undertale 式按鈕與全部快捷鍵測試 100% 通過！")
+        print("  ★ 地點自選、狀態百科、自選原料編織、篡改他人詞條與全部快捷鍵測試 100% 通過！")
         print("=" * 75)
         return True
     else:

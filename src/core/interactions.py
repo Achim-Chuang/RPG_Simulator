@@ -449,6 +449,178 @@ class ImprintTargetTraitInteraction(BaseInteraction):
         )
 
 
+class MutateTargetTraitInteraction(BaseInteraction):
+    """
+    【洗鍊變異目標詞條】：以因果神識沖刷重塑目標的某一項詞條。
+    若詞條帶有深重腐化，將予以淨化；若屬性偏弱，則有機率突破至更高階層或激發新加成。
+    """
+    id = "mutate_target_trait"
+    name = "洗鍊變異"
+    category = InteractionCategory.ESSENCE
+    ap_cost = 2
+    description = "消耗 MP 洗鍊目標靈魂中的指定詞條，重塑其數值或淨化腐化。"
+
+    def can_execute(
+        self,
+        actor: Character,
+        target: Character,
+        world_state: Any,
+        trait: Optional[Trait] = None,
+        **kwargs
+    ) -> Tuple[bool, str]:
+        can, reason = super().can_execute(actor, target, world_state, **kwargs)
+        if not can:
+            return False, reason
+        if not actor.is_awakened:
+            return False, f"{actor.name} 尚未覺醒，無法干預因果本質！"
+        if not trait:
+            return False, "必須指定欲洗鍊重塑之詞條 (trait)！"
+        if actor.current_mp < 25.0 and actor.rank_key != "Transcendent":
+            return False, f"精神力不足！洗鍊需要 25.0 MP，當前僅剩 {actor.current_mp:.1f} MP。"
+        return True, "可以執行。"
+
+    def execute(
+        self,
+        actor: Character,
+        target: Character,
+        world_state: Any,
+        trait: Optional[Trait] = None,
+        **kwargs
+    ) -> InteractionResult:
+        can, reason = self.can_execute(actor, target, world_state, trait=trait, **kwargs)
+        if not can:
+            return InteractionResult(success=False, message=reason)
+
+        actor.current_ap -= self.ap_cost
+        if actor.rank_key != "Transcendent":
+            actor.current_mp -= 25.0
+        actor.interaction_count += 1
+
+        from src.core.trait_synthesizer import TraitSynthesizer
+        mutated = TraitSynthesizer.mutate(trait, purify_corruption=True)
+
+        # 替換目標身上的詞條
+        replaced = False
+        for slot_list in [target.innate_traits, target.acquired_traits, target.imprinted_traits]:
+            for i, t in enumerate(slot_list):
+                if t.id == trait.id:
+                    slot_list[i] = mutated
+                    replaced = True
+                    break
+            if replaced:
+                break
+        if not replaced and trait.id in target.custom_traits:
+            target.custom_traits[trait.id] = mutated
+
+        d_aff = 10.0 if mutated.corruption_delta < trait.corruption_delta else 5.0
+        d_resp = 10.0
+        world_state.social_network.modify(target.char_id, actor.char_id, d_aff=d_aff, d_resp=d_resp)
+
+        msg = (
+            f"【因果洗鍊成功】{actor.name} 消耗 25.0 MP，對 {target.name} 的「{trait.name}」進行靈魂洗鍊重塑！\n"
+            f"  --> 重塑產物：【{mutated.tier}】「{mutated.name}」\n"
+            f"  --> 屬性變動：{mutated.modifiers}\n"
+            f"  --> 腐化淨化：{trait.corruption_delta:+.1f} -> {mutated.corruption_delta:+.1f}\n"
+            f"  --> {target.name} 感受到了靈魂的淨化洗禮，對你感激敬佩。"
+        )
+        return InteractionResult(
+            success=True,
+            message=msg,
+            ap_cost=self.ap_cost,
+            mp_cost=25.0,
+            delta_affection=d_aff,
+            delta_respect=d_resp,
+            extra_data={"mutated_trait": mutated}
+        )
+
+
+class ExtractTargetTraitInteraction(BaseInteraction):
+    """
+    【剝奪抽取本質】：從目標靈魂中強行抽離一枚詞條，據為己有（收納至主角自創詞條庫）。
+    目標失去該詞條，常駐心神負荷下降，但會感到靈魂被撕裂，與主動者關係急劇惡化。
+    """
+    id = "extract_target_trait"
+    name = "抽取本質"
+    category = InteractionCategory.ESSENCE
+    ap_cost = 3
+    description = "消耗 MP 強行剝離目標的一枚詞條並據為己有，會對其造成嚴重驚駭與反感。"
+
+    def can_execute(
+        self,
+        actor: Character,
+        target: Character,
+        world_state: Any,
+        trait: Optional[Trait] = None,
+        **kwargs
+    ) -> Tuple[bool, str]:
+        can, reason = super().can_execute(actor, target, world_state, **kwargs)
+        if not can:
+            return False, reason
+        if not actor.is_awakened:
+            return False, f"{actor.name} 尚未覺醒，無法干預因果本質！"
+        if not trait:
+            return False, "必須指定欲剝奪抽取之詞條 (trait)！"
+        if actor.current_mp < 35.0 and actor.rank_key != "Transcendent":
+            return False, f"精神力不足！抽取需要 35.0 MP，當前僅剩 {actor.current_mp:.1f} MP。"
+        return True, "可以執行。"
+
+    def execute(
+        self,
+        actor: Character,
+        target: Character,
+        world_state: Any,
+        trait: Optional[Trait] = None,
+        **kwargs
+    ) -> InteractionResult:
+        can, reason = self.can_execute(actor, target, world_state, trait=trait, **kwargs)
+        if not can:
+            return InteractionResult(success=False, message=reason)
+
+        actor.current_ap -= self.ap_cost
+        if actor.rank_key != "Transcendent":
+            actor.current_mp -= 35.0
+        actor.interaction_count += 1
+
+        # 從目標槽位移除該詞條
+        removed = False
+        for slot_list in [target.imprinted_traits, target.acquired_traits, target.innate_traits]:
+            for i, t in enumerate(slot_list):
+                if t.id == trait.id:
+                    slot_list.pop(i)
+                    removed = True
+                    break
+            if removed:
+                break
+        if not removed and trait.id in target.custom_traits:
+            del target.custom_traits[trait.id]
+            removed = True
+
+        # 將該詞條收納至主角自創詞條庫中
+        import copy
+        extracted_trait = copy.deepcopy(trait)
+        extracted_trait.is_synthetic = True
+        actor.custom_traits[extracted_trait.id] = extracted_trait
+
+        d_aff = -30.0
+        d_resp = 15.0  # 恐懼敬畏
+        world_state.social_network.modify(target.char_id, actor.char_id, d_aff=d_aff, d_resp=d_resp)
+
+        msg = (
+            f"【抽取剝離成功】{actor.name} 施展因果神術，自 {target.name} 靈魂深處強行抽離了【{trait.tier}】「{trait.name}」！\n"
+            f"  --> 該詞條已被編織入主角的專屬本質庫存之中。\n"
+            f"  --> {target.name} 靈魂元氣大傷，對你的驚恐與仇恨劇增 (好感 {d_aff:+.0f}，敬畏 {d_resp:+.0f})！"
+        )
+        return InteractionResult(
+            success=True,
+            message=msg,
+            ap_cost=self.ap_cost,
+            mp_cost=35.0,
+            delta_affection=d_aff,
+            delta_respect=d_resp,
+            extra_data={"extracted_trait": extracted_trait}
+        )
+
+
 # ==============================================================================
 # 4. 密謀與權術互動 (Intrigue & Conspiracy)
 # ==============================================================================
@@ -586,4 +758,6 @@ InteractionRegistry.register(ThreatenDuelInteraction())
 InteractionRegistry.register(AppointOfficeInteraction())
 InteractionRegistry.register(ScanEssenceInteraction())
 InteractionRegistry.register(ImprintTargetTraitInteraction())
+InteractionRegistry.register(MutateTargetTraitInteraction())
+InteractionRegistry.register(ExtractTargetTraitInteraction())
 InteractionRegistry.register(InstigateRebellionInteraction())

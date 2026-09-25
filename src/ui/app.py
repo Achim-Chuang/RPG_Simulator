@@ -1,16 +1,18 @@
 """
 RPG Simulator - Textual Modern TUI Application.
-Combines 'Eye of the Beholder' First-Person Viewport with 'Undertale'-style contextual action buttons.
+Combines 'Eye of the Beholder' First-Person Viewport with Contextual Action Deck & Interactive Modals.
 """
 
 import os
 import sys
-from typing import Optional, List, Dict, Any
+import copy
+from typing import Optional, List, Dict, Any, Tuple
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Header, Footer, Static, Button, RichLog
 from textual.binding import Binding
+from textual.screen import ModalScreen
 
 # 確保搜尋路徑包含專案根目錄
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -80,7 +82,7 @@ Screen {
 
 #main_layout {
     height: 1fr;
-    min-height: 15;
+    min-height: 12;
 }
 
 #left_hud {
@@ -127,7 +129,7 @@ Screen {
 }
 
 #event_log_panel {
-    height: 5;
+    height: 4;
     border-top: heavy #30363d;
     background: #0d1117;
     color: #8b949e;
@@ -138,49 +140,418 @@ Screen {
     height: 3;
     background: #161b22;
     border-top: double #58a6ff;
-    align: center middle;
     padding: 0;
-    overflow-x: auto;
+    align: center middle;
 }
 
-.undertale_btn {
-    margin: 0 1;
+.cmd_row {
+    height: 1;
+    align: center middle;
+    margin: 0;
+}
+
+.cmd_btn {
+    height: 1;
+    min-width: 11;
     padding: 0 1;
-    height: 3;
-    min-width: 12;
-    text-style: bold;
-    border: tall #8b949e;
-}
-
-.undertale_btn:hover {
-    border: tall #ff7b72;
+    margin: 0 1;
+    border: none;
     background: #21262d;
+    text-style: bold;
+    color: #c9d1d9;
 }
 
-#btn_move { color: #7ee787; border: tall #238636; }
-#btn_interact { color: #79c0ff; border: tall #1f6feb; }
-#btn_fuse { color: #d2a8ff; border: tall #8957e5; }
-#btn_lens { color: #ffa657; border: tall #bd561d; }
-#btn_council { color: #e3b341; border: tall #9e6a03; }
-#btn_next_slot { color: #ff7b72; border: tall #da3633; }
+.cmd_btn:hover {
+    background: #30363d;
+    color: #58a6ff;
+}
+
+#btn_loc { color: #7ee787; }
+#btn_interact { color: #79c0ff; }
+#btn_synth { color: #d2a8ff; }
+#btn_lens { color: #ffa657; }
+#btn_council { color: #e3b341; }
+#btn_next_slot { color: #ff7b72; }
+#btn_inspect { color: #58a6ff; }
+#btn_modify { color: #f0883e; }
+#btn_cycle { color: #56d364; }
+#btn_quit { color: #8b949e; }
+
+/* 模態視窗樣式 */
+ModalScreen {
+    align: center middle;
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.modal_dialog {
+    width: 72;
+    max-height: 85%;
+    background: #161b22;
+    border: heavy #58a6ff;
+    padding: 1 2;
+}
+
+.modal_title {
+    text-align: center;
+    text-style: bold;
+    color: #58a6ff;
+    border-bottom: solid #30363d;
+    padding-bottom: 1;
+    margin-bottom: 1;
+}
+
+.modal_scroll {
+    height: 1fr;
+    max-height: 18;
+    overflow-y: auto;
+}
+
+.modal_btn_row {
+    height: 3;
+    margin-top: 1;
+    align: center middle;
+}
+
+.modal_action_btn {
+    margin: 0 1;
+    height: 2;
+    background: #238636;
+    color: white;
+}
+
+.modal_cancel_btn {
+    margin: 0 1;
+    height: 2;
+    background: #da3633;
+    color: white;
+}
+
+.modal_select_btn {
+    margin: 0 0 1 0;
+    width: 100%;
+    height: 2;
+    content-align: left middle;
+    background: #21262d;
+    border: none;
+}
+
+.modal_select_btn:hover {
+    background: #388bfd;
+    color: white;
+}
 """
 
+
+# ==============================================================================
+# 互動彈窗 1：前往地區 / 快速移動導航 (LocationSelectModal)
+# ==============================================================================
+
+class LocationSelectModal(ModalScreen[Optional[int]]):
+    """大地圖快速巡行與地區前往彈窗"""
+    BINDINGS = [
+        Binding("escape", "cancel", "取消", show=True, priority=True),
+        Binding("1", "sel_0", "1", show=False, priority=True),
+        Binding("2", "sel_1", "2", show=False, priority=True),
+        Binding("3", "sel_2", "3", show=False, priority=True),
+        Binding("4", "sel_3", "4", show=False, priority=True),
+    ]
+
+    def __init__(self, current_idx: int, world: WorldState):
+        super().__init__()
+        self.current_idx = current_idx
+        self.world = world
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="modal_dialog"):
+            yield Static("🧭【大地圖快速巡行：選擇欲前往的地區】", classes="modal_title")
+            with ScrollableContainer(classes="modal_scroll"):
+                for i, loc in enumerate(LOCATIONS):
+                    is_cur = (i == self.current_idx % len(LOCATIONS))
+                    tag = " [bold green]【當前所處地點】[/bold green]" if is_cur else " [cyan](消耗 1 AP)[/cyan]"
+                    npcs = [self.world.get_character(nid).name for nid in loc["npc_ids"] if self.world.get_character(nid)]
+                    npc_str = "、".join(npcs) if npcs else "無"
+                    desc_text = f"[bold yellow][{i+1}] {loc['name']}[/bold yellow]{tag}\n  {loc['desc']}\n  👥 常駐居民: {npc_str}\n"
+                    yield Static(desc_text)
+            with Horizontal(classes="modal_btn_row"):
+                for i, loc in enumerate(LOCATIONS):
+                    yield Button(f"[{i+1}] {loc['name'][:4]}", id=f"btn_loc_{i}", classes="modal_action_btn")
+                yield Button("[Esc] 取消", id="btn_cancel_loc", classes="modal_cancel_btn")
+
+    def action_cancel(self): self.dismiss(None)
+    def action_sel_0(self): self.dismiss(0)
+    def action_sel_1(self): self.dismiss(1)
+    def action_sel_2(self): self.dismiss(2)
+    def action_sel_3(self): self.dismiss(3)
+
+    def on_button_pressed(self, event: Button.Pressed):
+        bid = event.button.id
+        if bid and bid.startswith("btn_loc_"):
+            idx = int(bid.replace("btn_loc_", ""))
+            self.dismiss(idx)
+        else:
+            self.dismiss(None)
+
+
+# ==============================================================================
+# 互動彈窗 2：角色修為狀態、詞條百科與行囊全覽 (InspectModal)
+# ==============================================================================
+
+class InspectModal(ModalScreen[None]):
+    """主角詳細狀態、詞條百科與行囊檢視彈窗"""
+    BINDINGS = [
+        Binding("escape", "close", "關閉", show=True, priority=True),
+        Binding("enter", "close", "關閉", show=True, priority=True),
+        Binding("i", "close", "關閉", show=True, priority=True),
+    ]
+
+    def __init__(self, hero: Character):
+        super().__init__()
+        self.hero = hero
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="modal_dialog"):
+            yield Static("📜【主角修為、靈魂詞條本相與行囊全覽】", classes="modal_title")
+            with ScrollableContainer(classes="modal_scroll"):
+                ratio = self.hero.stress_ratio
+                state, state_desc = self.hero.get_mental_state()
+                corr_state, _ = self.hero.get_corruption_state()
+
+                # 1. 角色修為狀態
+                status_block = f"""[bold yellow]★ {self.hero.name}[/bold yellow] (ID: {self.hero.char_id})
+• 境界位階: [cyan]{self.hero.rank_def.name} ({self.hero.rank_key})[/cyan]  │  行動點數: [green]{self.hero.current_ap}/10 AP[/green]
+• 精神法力 (MP): [bold cyan]{self.hero.current_mp:.1f} / {self.hero.max_mp:.1f}[/bold cyan]
+• 心神維持負荷: [bold red]{self.hero.calculate_sustained_load():.1f} MP ({ratio*100:.1f}%)[/bold red]  --> 狀態: [{state.value}]
+  [dim]{state_desc}[/dim]
+• 靈魂腐化度: [magenta]{self.hero.corruption:.1f} / 100.0[/magenta]  --> 靈性境界: [{corr_state.value}]
+• 金庫持有金幣: [bold gold1]{self.hero.gold:.1f} 枚金幣[/bold gold1]
+----------------------------------------------------------------------"""
+                yield Static(status_block)
+
+                # 2. 掌握詞條詳細條目解析
+                yield Static("[bold green]🧬【掌握本質詞條詳細條目 (含數值修正與親代溯源)】[/bold green]")
+                all_traits = self.hero.all_traits
+                if not all_traits:
+                    yield Static("[dim]當前尚未掌握任何本質詞條。[/dim]")
+                else:
+                    for i, t in enumerate(all_traits):
+                        cat_name = "專屬自創" if getattr(t, "is_synthetic", False) else t.category.value
+                        tags_str = ", ".join(t.tags) if t.tags else "無標籤"
+
+                        mods_list = []
+                        for k, v in t.modifiers.items():
+                            val_str = f"+{v*100:.0f}%" if isinstance(v, float) and v < 5.0 else f"{v:+.1f}"
+                            mods_list.append(f"{k}: {val_str}")
+                        mods_str = " | ".join(mods_list) if mods_list else "無直接屬性修正"
+
+                        parents_info = f" [親代溯源: {', '.join(t.parents)}]" if getattr(t, 'parents', None) else ""
+
+                        t_card = f"""[bold white]{i+1}. 【{str(t.tier)}】「{t.name}」[/bold white] [{cat_name}] {parents_info}
+   • 靈魂標籤: [cyan]{tags_str}[/cyan]
+   • 描述說明: {t.description}
+   • 屬性增益: [green]{mods_str}[/green]
+   • 心神常駐維持: [yellow]{t.base_load:.1f} MP[/yellow]  │  靈魂腐化變動: [magenta]{t.corruption_delta:+.1f}[/magenta]"""
+                        yield Static(t_card)
+
+                # 3. 行囊裝備與器物
+                yield Static("\n----------------------------------------------------------------------")
+                yield Static("[bold yellow]🎒【行囊與持有器物 (Artifacts)】[/bold yellow]")
+                artifacts = [t for t in all_traits if t.category == Category.ARTIFACT]
+                if not artifacts:
+                    yield Static("[dim]行囊中目前無任何器物法寶，僅隨身攜帶金幣與靈魂本質。[/dim]")
+                else:
+                    for a in artifacts:
+                        yield Static(f"• 📦【{str(a.tier)}】「{a.name}」 - {a.description}")
+
+            with Horizontal(classes="modal_btn_row"):
+                yield Button("[Enter / Esc] 關閉面板", id="btn_close_inspect", classes="modal_action_btn")
+
+    def action_close(self):
+        self.dismiss(None)
+
+    def on_button_pressed(self, event: Button.Pressed):
+        self.dismiss(None)
+
+
+# ==============================================================================
+# 互動彈窗 3：自選原料編織自創詞條 (TraitSynthesizeModal)
+# ==============================================================================
+
+class TraitSynthesizeModal(ModalScreen[Optional[Tuple[Trait, Trait]]]):
+    """自選原料編織自創詞條彈窗"""
+    BINDINGS = [
+        Binding("escape", "cancel", "取消", show=True, priority=True),
+        Binding("1", "sel_1", "1", show=False, priority=True),
+        Binding("2", "sel_2", "2", show=False, priority=True),
+        Binding("3", "sel_3", "3", show=False, priority=True),
+        Binding("4", "sel_4", "4", show=False, priority=True),
+        Binding("5", "sel_5", "5", show=False, priority=True),
+        Binding("6", "sel_6", "6", show=False, priority=True),
+        Binding("7", "sel_7", "7", show=False, priority=True),
+        Binding("8", "sel_8", "8", show=False, priority=True),
+        Binding("9", "sel_9", "9", show=False, priority=True),
+    ]
+
+    def __init__(self, hero: Character):
+        super().__init__()
+        self.hero = hero
+        self.traits = hero.all_traits
+        self.selected_p1: Optional[int] = None
+        self.selected_p2: Optional[int] = None
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="modal_dialog"):
+            yield Static("✨【本質編織者：自主選擇兩枚原料進行靈魂重構】", classes="modal_title")
+            with ScrollableContainer(classes="modal_scroll"):
+                yield Static(id="synthesize_instruction")
+                for i, t in enumerate(self.traits[:9]):
+                    tags = ", ".join(t.tags) if t.tags else "無"
+                    yield Button(
+                        f"[{i+1}] 【{str(t.tier)}】「{t.name}」 (標籤: {tags})",
+                        id=f"btn_trait_{i}",
+                        classes="modal_select_btn"
+                    )
+            with Horizontal(classes="modal_btn_row"):
+                yield Button("重選第一枚", id="btn_reset_selection", classes="modal_cancel_btn")
+                yield Button("[Esc] 取消", id="btn_cancel_synth", classes="modal_cancel_btn")
+
+    def on_mount(self):
+        self.update_step_view()
+
+    def update_step_view(self):
+        instr = self.query_one("#synthesize_instruction", Static)
+        if self.selected_p1 is None:
+            instr.update("[bold cyan]步驟 1/2：請點擊或按數字鍵選擇【第一枚原料詞條】[/bold cyan]")
+        elif self.selected_p2 is None:
+            t1 = self.traits[self.selected_p1]
+            instr.update(f"[bold green]已選原料一：【{str(t1.tier)}】「{t1.name}」[/bold green]\n[bold yellow]步驟 2/2：請點擊或按數字鍵選擇【第二枚原料詞條】進行交融[/bold yellow]")
+
+    def handle_select_idx(self, idx: int):
+        if idx >= len(self.traits):
+            return
+        if self.selected_p1 is None:
+            self.selected_p1 = idx
+            self.update_step_view()
+        elif self.selected_p2 is None:
+            if idx == self.selected_p1:
+                return
+            self.selected_p2 = idx
+            t1 = self.traits[self.selected_p1]
+            t2 = self.traits[self.selected_p2]
+            self.dismiss((t1, t2))
+
+    def action_cancel(self): self.dismiss(None)
+    def action_sel_1(self): self.handle_select_idx(0)
+    def action_sel_2(self): self.handle_select_idx(1)
+    def action_sel_3(self): self.handle_select_idx(2)
+    def action_sel_4(self): self.handle_select_idx(3)
+    def action_sel_5(self): self.handle_select_idx(4)
+    def action_sel_6(self): self.handle_select_idx(5)
+    def action_sel_7(self): self.handle_select_idx(6)
+    def action_sel_8(self): self.handle_select_idx(7)
+    def action_sel_9(self): self.handle_select_idx(8)
+
+    def on_button_pressed(self, event: Button.Pressed):
+        bid = event.button.id
+        if bid and bid.startswith("btn_trait_"):
+            idx = int(bid.replace("btn_trait_", ""))
+            self.handle_select_idx(idx)
+        elif bid == "btn_reset_selection":
+            self.selected_p1 = None
+            self.selected_p2 = None
+            self.update_step_view()
+        else:
+            self.dismiss(None)
+
+
+# ==============================================================================
+# 互動彈窗 4：篡改/編織/修改他人詞條 (ModifyTargetTraitModal)
+# ==============================================================================
+
+class ModifyTargetTraitModal(ModalScreen[Optional[Dict[str, Any]]]):
+    """篡改/編織/修改他人詞條彈窗"""
+    BINDINGS = [
+        Binding("escape", "cancel", "取消", show=True, priority=True),
+        Binding("1", "sel_1", "1", show=False, priority=True),
+        Binding("2", "sel_2", "2", show=False, priority=True),
+        Binding("3", "sel_3", "3", show=False, priority=True),
+    ]
+
+    def __init__(self, actor: Character, target: Character):
+        super().__init__()
+        self.actor = actor
+        self.target = target
+        self.target_traits = target.all_traits
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="modal_dialog"):
+            yield Static(f"👁【因果神術：篡改 {self.target.name} 的靈魂本相】", classes="modal_title")
+            with ScrollableContainer(classes="modal_scroll"):
+                t_names = [f"【{str(t.tier)}】「{t.name}」" for t in self.target_traits]
+                t_list_str = "、".join(t_names) if t_names else "無任何詞條"
+
+                info = f"""[bold yellow]目標對象：{self.target.name}[/bold yellow] ({self.target.profession_id.replace('prof_', '')})
+境界: {self.target.rank_def.name}  │  常駐負荷: {self.target.stress_ratio*100:.1f}%  │  腐化: {self.target.corruption:.1f}/100
+當前持有詞條: {t_list_str}
+
+[bold cyan]請選擇欲施展的因果靈魂權能：[/bold cyan]"""
+                yield Static(info)
+
+                yield Button(
+                    f"[1] 強行灌注刻印 (Imprint)\n    將你自創的專屬本質注入其靈魂 (需 3 AP, 精神力)",
+                    id="btn_mode_imprint",
+                    classes="modal_select_btn"
+                )
+                yield Button(
+                    f"[2] 洗鍊重塑變異 (Mutate/Refine)\n    以神識沖刷其現有詞條，重塑數值並淨化腐化 (需 2 AP, 25 MP)",
+                    id="btn_mode_mutate",
+                    classes="modal_select_btn"
+                )
+                yield Button(
+                    f"[3] 抽取剝離本質 (Extract/Strip)\n    強行奪取其一項詞條收為己有，大幅降低好感 (需 3 AP, 35 MP)",
+                    id="btn_mode_extract",
+                    classes="modal_select_btn"
+                )
+            with Horizontal(classes="modal_btn_row"):
+                yield Button("[Esc] 取消", id="btn_cancel_modify", classes="modal_cancel_btn")
+
+    def action_cancel(self): self.dismiss(None)
+    def action_sel_1(self): self.dismiss({"action": "imprint"})
+    def action_sel_2(self): self.dismiss({"action": "mutate"})
+    def action_sel_3(self): self.dismiss({"action": "extract"})
+
+    def on_button_pressed(self, event: Button.Pressed):
+        bid = event.button.id
+        if bid == "btn_mode_imprint":
+            self.dismiss({"action": "imprint"})
+        elif bid == "btn_mode_mutate":
+            self.dismiss({"action": "mutate"})
+        elif bid == "btn_mode_extract":
+            self.dismiss({"action": "extract"})
+        else:
+            self.dismiss(None)
+
+
+# ==============================================================================
+# 主應用程式：RPGSimulatorApp
+# ==============================================================================
 
 class RPGSimulatorApp(App):
     """
     RPG Simulator 現代終端 TUI 主程式
-    魔眼殺機主視界 + 因果之眼透視 + Undertale 式底部互動艙
+    魔眼殺機主視界 + 因果之眼透視 + 精簡指令列與全套互動彈窗
     """
     CSS = APP_CSS
     TITLE = "RPG Simulator: The Essence Weaver"
 
     BINDINGS = [
-        Binding("1", "move", "換向探索", show=True),
+        Binding("1", "open_travel", "前往地區", show=True),
         Binding("2", "interact", "角色互動", show=True),
-        Binding("3", "fuse", "本質編織", show=True),
+        Binding("3", "open_synthesize", "本質編織", show=True),
         Binding("4", "toggle_lens", "因果之眼", show=True),
         Binding("5", "council", "組織政務", show=True),
         Binding("6", "advance_slot", "時段推進", show=True),
+        Binding("i", "open_inspect", "狀態行囊", show=True),
+        Binding("m", "open_modify_target", "修改他人", show=True),
         Binding("c", "cycle_target", "切換對象", show=True),
         Binding("tab", "toggle_lens", "因果之眼", show=False, priority=True),
         Binding("space", "advance_slot", "推進時段", show=False, priority=True),
@@ -220,7 +591,6 @@ class RPGSimulatorApp(App):
 
     def _populate_city_world(self, world: WorldState) -> None:
         """豐富世界 NPC、官職體系與社會關係"""
-        # 1. 確保商隊托馬斯設定
         thomas = world.get_character("npc_caravan_thomas")
         if thomas:
             thomas.profession_id = "prof_merchant"
@@ -229,7 +599,6 @@ class RPGSimulatorApp(App):
             if "rare_monopoly_baron" in world.trait_registry and world.trait_registry["rare_monopoly_baron"] not in thomas.acquired_traits:
                 thomas.acquired_traits.append(world.trait_registry["rare_monopoly_baron"])
 
-        # 2. 衛隊長艾蓮娜
         if "npc_guard_elena" not in world.characters:
             elena = Character("npc_guard_elena", "治安衛士·艾蓮娜", rank_key="Chorji", gold=80.0)
             elena.profession_id = "prof_guard"
@@ -240,7 +609,6 @@ class RPGSimulatorApp(App):
                     elena.innate_traits.append(world.trait_registry[tid])
             world.add_character(elena)
 
-        # 3. 奧秘學者賽勒斯
         if "npc_scholar_cyrus" not in world.characters:
             cyrus = Character("npc_scholar_cyrus", "奧秘學者·賽勒斯", rank_key="Acolyte", is_awakened=True, gold=200.0)
             cyrus.profession_id = "prof_scholar"
@@ -251,7 +619,6 @@ class RPGSimulatorApp(App):
                     cyrus.innate_traits.append(world.trait_registry[tid])
             world.add_character(cyrus)
 
-        # 4. 鐵匠布魯諾
         if "npc_artisan_bruno" not in world.characters:
             bruno = Character("npc_artisan_bruno", "巧手工匠·布魯諾", rank_key="Chorji", gold=120.0)
             bruno.profession_id = "prof_artisan"
@@ -262,7 +629,6 @@ class RPGSimulatorApp(App):
                     bruno.innate_traits.append(world.trait_registry[tid])
             world.add_character(bruno)
 
-        # 5. 荒野遊俠琪拉
         if "npc_adventurer_kira" not in world.characters:
             kira = Character("npc_adventurer_kira", "邊境遊俠·琪拉", rank_key="Chorji", gold=95.0)
             kira.profession_id = "prof_adventurer"
@@ -273,7 +639,6 @@ class RPGSimulatorApp(App):
                     kira.innate_traits.append(world.trait_registry[tid])
             world.add_character(kira)
 
-        # 6. 套用內閣體系架構
         free_city = world.org_manager.get_org("org_free_city")
         if free_city and not free_city.offices:
             free_city.apply_council_template("feudal_fantasy")
@@ -311,28 +676,29 @@ class RPGSimulatorApp(App):
         # 事件日誌面板
         yield RichLog(id="event_log_panel", auto_scroll=True, markup=True)
 
-        # 底部指令艙 (Undertale 風格按鈕)
-        with Horizontal(id="bottom_command_deck"):
-            yield Button("[1] 換向探索", id="btn_move", classes="undertale_btn")
-            yield Button("[2] 角色互動", id="btn_interact", classes="undertale_btn")
-            yield Button("[3] 本質編織", id="btn_fuse", classes="undertale_btn")
-            yield Button("[4] 因果之眼", id="btn_lens", classes="undertale_btn")
-            yield Button("[5] 組織政務", id="btn_council", classes="undertale_btn")
-            yield Button("[6] 時段推進", id="btn_next_slot", classes="undertale_btn")
-
-        yield Footer()
+        # 底部指令艙 (精簡 2 列指令條，永不被視窗遮蔽)
+        with Vertical(id="bottom_command_deck"):
+            with Horizontal(classes="cmd_row"):
+                yield Button("[1] 前往地區", id="btn_loc", classes="cmd_btn")
+                yield Button("[2] 角色互動", id="btn_interact", classes="cmd_btn")
+                yield Button("[3] 本質編織", id="btn_synth", classes="cmd_btn")
+                yield Button("[4] 因果之眼", id="btn_lens", classes="cmd_btn")
+                yield Button("[5] 組織政務", id="btn_council", classes="cmd_btn")
+            with Horizontal(classes="cmd_row"):
+                yield Button("[6] 推進時段", id="btn_next_slot", classes="cmd_btn")
+                yield Button("[I] 狀態行囊", id="btn_inspect", classes="cmd_btn")
+                yield Button("[M] 修改他人", id="btn_modify", classes="cmd_btn")
+                yield Button("[C] 切換目標", id="btn_cycle", classes="cmd_btn")
+                yield Button("[Q] 離開遊戲", id="btn_quit", classes="cmd_btn")
 
     def on_mount(self) -> None:
-        """介面掛載完畢初始化渲染"""
         self.update_all_views()
         self.log_event("[green]✦ 世界初始化完成！歡迎踏入因果與本質的世界。[/green]")
 
     def get_current_location(self) -> Dict[str, Any]:
-        """獲取當前所處場景"""
         return LOCATIONS[self.current_location_idx % len(LOCATIONS)]
 
     def get_present_npcs(self) -> List[Character]:
-        """獲取當前場景中存活的 NPC 清單"""
         loc = self.get_current_location()
         npc_ids = loc.get("npc_ids", [])
         npcs = []
@@ -343,7 +709,6 @@ class RPGSimulatorApp(App):
         return npcs
 
     def get_facing_character(self) -> Optional[Character]:
-        """獲取當前正對著的 NPC"""
         npcs = self.get_present_npcs()
         if not npcs:
             return None
@@ -351,11 +716,10 @@ class RPGSimulatorApp(App):
         return npcs[idx]
 
     def update_all_views(self) -> None:
-        """全面刷新所有 UI 視窗"""
         # 1. 頂部列
         cal = self.world.calendar
         loc = self.get_current_location()
-        top_text = f"📅 第 {cal.current_day} 天 【{cal.current_slot.value}】 (10 AP/時段)  │  📍 {loc['name']}  │  🌤 晨風吹拂，人流漸盛"
+        top_text = f"📅 第 {cal.current_day} 天 【{cal.current_slot.value}】 (10 AP/時段)  │  📍 {loc['name']}  │  🌤 晨風拂面"
         self.query_one("#top_bar", Static).update(top_text)
 
         # 2. 左側主角 HUD
@@ -386,13 +750,14 @@ class RPGSimulatorApp(App):
         all_t = self.hero.all_traits
         traits_summary = f"""
 [bold green]【掌握本質詞條 ({len(all_t)})】[/bold green]
-{chr(10).join(['• ' + t.name for t in all_t[:4]]) if all_t else '• 暫無'}"""
+{chr(10).join(['• ' + t.name for t in all_t[:4]]) if all_t else '• 暫無'}
+[dim](按 I 鍵檢視完整百科與屬性)[/dim]"""
         self.query_one("#hud_traits", Static).update(traits_summary)
 
         # 3. 中央主視界渲染
         facing_npc = self.get_facing_character()
         viewport = self.query_one("#viewport_display", Static)
-        
+
         if self.essence_lens_active:
             viewport.add_class("lens_active")
         else:
@@ -440,7 +805,6 @@ class RPGSimulatorApp(App):
             f"[bold cyan]👥【眼前所見之人】[/bold cyan]\n" + "\n".join(npc_lines)
         )
 
-        # 內閣職能概覽
         org_lines = ["[bold magenta]🏛【組織與內閣職能】[/bold magenta]"]
         for org in list(self.world.org_manager.all_orgs.values())[:2]:
             org_lines.append(f"• [bold]{org.name}[/bold]")
@@ -452,13 +816,113 @@ class RPGSimulatorApp(App):
         self.query_one("#sidebar_council_status", Static).update("\n".join(org_lines))
 
     def log_event(self, text: str) -> None:
-        """輸出至事件日誌面板"""
         log = self.query_one("#event_log_panel", RichLog)
         log.write(text)
 
     # ==========================================================================
     # 按鈕與指令動作處理
     # ==========================================================================
+
+    def action_open_travel(self) -> None:
+        """[1] 前往地區：打開地區選擇彈窗，由玩家自由選擇前往，避免浪費 AP"""
+        def on_travel_selected(target_idx: Optional[int]):
+            if target_idx is None:
+                return
+            if target_idx == self.current_location_idx % len(LOCATIONS):
+                self.dialogue_text = f"你已經身處【{LOCATIONS[target_idx]['name']}】。"
+                self.update_all_views()
+                return
+
+            if self.hero.current_ap < 1:
+                self.dialogue_text = "行動點數不足（前往該地區需消耗 1 AP）！"
+                self.update_all_views()
+                return
+
+            self.hero.current_ap -= 1
+            self.current_location_idx = target_idx
+            self.current_facing_target_idx = 0
+            loc = self.get_current_location()
+            self.dialogue_text = f"你消耗 1 AP 前往了【{loc['name']}】。{loc['desc']}"
+            self.log_event(f"[dim]主角消耗 1 AP 前往【{loc['name']}】。[/dim]")
+            self.update_all_views()
+
+        self.push_screen(LocationSelectModal(self.current_location_idx, self.world), on_travel_selected)
+
+    def action_open_inspect(self) -> None:
+        """[I] 狀態行囊：打開主角屬性、掌握詞條完整百科與背包詳情"""
+        self.push_screen(InspectModal(self.hero))
+
+    def action_open_synthesize(self) -> None:
+        """[3] 本質編織：打開自選原料彈窗，由玩家自主挑選兩枚詞條進行融合"""
+        traits = self.hero.all_traits
+        if len(traits) < 2:
+            self.dialogue_text = "掌握的詞條數量不足 2 枚，無法進行本質重組！"
+            self.update_all_views()
+            return
+
+        def on_traits_selected(pair: Optional[Tuple[Trait, Trait]]):
+            if not pair:
+                return
+            t1, t2 = pair
+            succ, fuse_msg, new_t = TraitSynthesizer.execute_hero_fusion(self.hero, t1, t2)
+            if succ and new_t:
+                self.dialogue_text = f"【本質融合成功】融合「{t1.name}」與「{t2.name}」，誕生自創專屬詞條：【{str(new_t.tier)}】「{new_t.name}」！"
+                self.log_event(f"[bold purple]✨ 本質編織成功！誕生自創詞條：【{str(new_t.tier)}】「{new_t.name}」[/bold purple]")
+                self.hero.imprint_trait(self.hero, new_t)
+            else:
+                self.dialogue_text = fuse_msg
+            self.update_all_views()
+
+        self.push_screen(TraitSynthesizeModal(self.hero), on_traits_selected)
+
+    def action_open_modify_target(self) -> None:
+        """[M] 修改他人：對眼前 NPC 施展因果本質編織（刻印、洗鍊或剝奪）"""
+        target = self.get_facing_character()
+        if not target:
+            self.dialogue_text = "前方空無一人，無法進行因果本質干涉。"
+            self.update_all_views()
+            return
+
+        def on_modify_selected(res: Optional[Dict[str, Any]]):
+            if not res:
+                return
+            act_type = res.get("action")
+
+            if act_type == "imprint":
+                # 選擇主角詞條刻印給目標
+                if not self.hero.all_traits:
+                    self.dialogue_text = "你自身尚未掌握任何本質詞條，無法灌注刻印！"
+                    self.update_all_views()
+                    return
+                # 取主角最新掌握或自創詞條
+                trait_to_imprint = list(self.hero.custom_traits.values())[-1] if self.hero.custom_traits else self.hero.all_traits[-1]
+                res_imp = self.world.execute_interaction("imprint_target_trait", self.hero.char_id, target.char_id, trait=trait_to_imprint)
+                self.dialogue_text = res_imp.message.splitlines()[0]
+                self.log_event(f"[magenta]🔮 {res_imp.message.replace(chr(10), ' ')}[/magenta]")
+
+            elif act_type == "mutate":
+                if not target.all_traits:
+                    self.dialogue_text = f"{target.name} 體內無任何詞條可供洗鍊！"
+                    self.update_all_views()
+                    return
+                trait_to_mutate = target.all_traits[0]
+                res_mut = self.world.execute_interaction("mutate_target_trait", self.hero.char_id, target.char_id, trait=trait_to_mutate)
+                self.dialogue_text = res_mut.message.splitlines()[0]
+                self.log_event(f"[green]✨ {res_mut.message.replace(chr(10), ' ')}[/green]")
+
+            elif act_type == "extract":
+                if not target.all_traits:
+                    self.dialogue_text = f"{target.name} 體內無任何詞條可供剝奪！"
+                    self.update_all_views()
+                    return
+                trait_to_extract = target.all_traits[0]
+                res_ext = self.world.execute_interaction("extract_target_trait", self.hero.char_id, target.char_id, trait=trait_to_extract)
+                self.dialogue_text = res_ext.message.splitlines()[0]
+                self.log_event(f"[red]⚡ {res_ext.message.replace(chr(10), ' ')}[/red]")
+
+            self.update_all_views()
+
+        self.push_screen(ModifyTargetTraitModal(self.hero, target), on_modify_selected)
 
     def action_toggle_lens(self) -> None:
         """[Tab / 4] 切換因果之眼 (Essence Lens)"""
@@ -484,20 +948,6 @@ class RPGSimulatorApp(App):
             self.dialogue_text = f"你轉移視線，目光投向了站在前方的【{target.name}】。"
         self.update_all_views()
 
-    def action_move(self) -> None:
-        """[1] 換向探索 / 前往下一處城區或地標"""
-        if self.hero.current_ap < 1:
-            self.dialogue_text = "你的行動點數 (AP) 不足，無法在此時段繼續大範圍巡視！"
-            self.update_all_views()
-            return
-        self.hero.current_ap -= 1
-        self.current_location_idx += 1
-        self.current_facing_target_idx = 0
-        loc = self.get_current_location()
-        self.dialogue_text = f"你邁步巡行抵達【{loc['name']}】。{loc['desc']}"
-        self.log_event(f"[dim]主角消耗 1 AP 抵達【{loc['name']}】。[/dim]")
-        self.update_all_views()
-
     def action_interact(self) -> None:
         """[2] 角色互動：與當前正對的 NPC 攀談問候"""
         target = self.get_facing_character()
@@ -516,26 +966,6 @@ class RPGSimulatorApp(App):
         self.log_event(f"[blue]💬 {res.message.replace(chr(10), ' ')}[/blue]")
         self.update_all_views()
 
-    def action_fuse(self) -> None:
-        """[3] 本質編織：融合自創詞條"""
-        traits = self.hero.all_traits
-        if len(traits) < 2:
-            self.dialogue_text = "掌握的詞條數量不足 2 枚，無法進行本質重組！"
-            self.update_all_views()
-            return
-
-        # 挑選前兩枚非同源詞條
-        t1, t2 = traits[0], traits[1]
-        succ, fuse_msg, new_t = TraitSynthesizer.execute_hero_fusion(self.hero, t1, t2)
-        if succ and new_t:
-            self.dialogue_text = f"【本質融合成功】誕生全新專屬詞條：【{str(new_t.tier)}】「{new_t.name}」！"
-            self.log_event(f"[bold purple]✨ 本質編織成功！誕生自創詞條：【{str(new_t.tier)}】「{new_t.name}」[/bold purple]")
-            # 自動嘗試刻印
-            self.hero.imprint_trait(self.hero, new_t)
-        else:
-            self.dialogue_text = fuse_msg
-        self.update_all_views()
-
     def action_council(self) -> None:
         """[5] 組織政務：檢視各職能效率，若正對 NPC 且符合條件可委任席位"""
         primary_org = self.world.org_manager.get_org("org_free_city") or (
@@ -547,7 +977,6 @@ class RPGSimulatorApp(App):
             return
 
         facing_npc = self.get_facing_character()
-        # 若正對著未任官之 NPC 且有懸缺，嘗試封官授爵
         if facing_npc:
             vacant = [o for o in primary_org.offices.values() if not o.incumbent_id]
             if vacant:
@@ -559,7 +988,6 @@ class RPGSimulatorApp(App):
                     self.update_all_views()
                     return
 
-        # 否則檢視內閣各權能運作效率
         eff_reports = []
         for auth in [Authority.MILITARY, Authority.TREASURY, Authority.INTERNAL_LAW]:
             eff, eff_msg = primary_org.get_authority_efficiency(auth, self.world.characters)
@@ -581,18 +1009,26 @@ class RPGSimulatorApp(App):
     # 按鈕點擊綁定
     def on_button_pressed(self, event: Button.Pressed) -> None:
         btn_id = event.button.id
-        if btn_id == "btn_move":
-            self.action_move()
+        if btn_id == "btn_loc":
+            self.action_open_travel()
         elif btn_id == "btn_interact":
             self.action_interact()
-        elif btn_id == "btn_fuse":
-            self.action_fuse()
+        elif btn_id == "btn_synth":
+            self.action_open_synthesize()
         elif btn_id == "btn_lens":
             self.action_toggle_lens()
         elif btn_id == "btn_council":
             self.action_council()
         elif btn_id == "btn_next_slot":
             self.action_advance_slot()
+        elif btn_id == "btn_inspect":
+            self.action_open_inspect()
+        elif btn_id == "btn_modify":
+            self.action_open_modify_target()
+        elif btn_id == "btn_cycle":
+            self.action_cycle_target()
+        elif btn_id == "btn_quit":
+            self.action_quit()
 
 
 def main():
