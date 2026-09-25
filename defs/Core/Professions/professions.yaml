@@ -1,0 +1,119 @@
+- id: prof_artisan
+  name: 巧手工匠 / 鐵匠
+  social_class: working
+  tier: common
+  base_daily_wage: 15.0
+  description: 熟練掌握鍛造、木工或皮革手藝的實體工匠，每日早晨在作坊製造實用商品。
+  routines:
+    morning:
+      action_name: 工坊鍛造生產
+      ap_cost: 8
+      action_type: produce_craft
+    afternoon:
+      action_name: 送貨市集銷售
+      ap_cost: 6
+      action_type: market_trade
+    night:
+      action_name: 返回居所休憩
+      ap_cost: 4
+      action_type: home_rest
+
+- id: prof_guard
+  name: 城防衛兵 / 治安巡警
+  social_class: martial
+  tier: common
+  base_daily_wage: 25.0
+  description: 領取城鎮軍餉的正規戍衛，巡查各街區維護治安，震懾不法之徒。
+  routines:
+    morning:
+      action_name: 城門點名與換防
+      ap_cost: 6
+      action_type: gate_duty
+    afternoon:
+      action_name: 全城巡邏盤查
+      ap_cost: 8
+      action_type: patrol_security
+    night:
+      action_name: 兵營酒館聚飲
+      ap_cost: 5
+      action_type: tavern_social
+
+- id: prof_merchant
+  name: 坐堂商賈 / 鋪面掌櫃
+  social_class: mercantile
+  tier: middle
+  base_daily_wage: 40.0
+  description: 經營城鎮鋪面的精明商人，藉由差價收購各方物資並販售獲利。
+  routines:
+    morning:
+      action_name: 盤點庫存與定價
+      ap_cost: 5
+      action_type: inventory_audit
+    afternoon:
+      action_name: 櫃檯撮合交易
+      ap_cost: 8
+      action_type: market_trade
+    night:
+      action_name: 商會宴席交際
+      ap_cost: 6
+      action_type: banquet_social
+
+- id: prof_official
+  name: 政務官員 / 市務參事
+  social_class: patrician
+  tier: noble
+  base_daily_wage: 80.0
+  description: 輔佐執政官管理城邦行政、財稅與司法的要員，出入於市政廳公堂。
+  routines:
+    morning:
+      action_name: 批閱政令公文
+      ap_cost: 7
+      action_type: govern_order
+    afternoon:
+      action_name: 公堂審理接見
+      ap_cost: 7
+      action_type: court_session
+    night:
+      action_name: 貴族莊園沙龍
+      ap_cost: 6
+      action_type: salon_social
+
+- id: prof_adventurer
+  name: 邊境傭兵 / 拓荒冒險者
+  social_class: martial
+  tier: common
+  base_daily_wage: 15.0
+  description: 刀口舔血的荒野探索者，隨時準備深入古老遺跡或討伐兇暴魔物。
+  routines:
+    morning:
+      action_name: 檢修裝備補給
+      ap_cost: 5
+      action_type: gear_prep
+    afternoon:
+      action_name: 荒野出巡冒險
+      ap_cost: 9
+      action_type: wilderness_hunt
+    night:
+      action_name: 酒館豪飲打聽
+      ap_cost: 6
+      action_type: tavern_social
+
+- id: prof_scholar
+  name: 博雅學者 / 圖書導師
+  social_class: academic
+  tier: middle
+  base_daily_wage: 35.0
+  description: 埋首於古籍與因果星圖研究的知識份子，通曉歷史典故與哲學真理。
+  routines:
+    morning:
+      action_name: 研讀古源典籍
+      ap_cost: 6
+      action_type: research_tome
+    afternoon:
+      action_name: 學院講學授業
+      ap_cost: 7
+      action_type: lecture_teach
+    night:
+      action_name: 觀星推演哲思
+      ap_cost: 5
+      action_type: salon_social

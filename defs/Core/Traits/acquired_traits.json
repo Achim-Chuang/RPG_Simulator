@@ -4,6 +4,7 @@
     "name": "市井智慧",
     "category": "ACQUIRED",
     "tier": 1,
+    "tags": ["social", "adapt", "commerce"],
     "description": "長期在底層摸爬滾打習得的眼色，議價與識破常規謊言更有效。",
     "modifiers": {
       "bargaining": 0.1,
@@ -15,6 +16,7 @@
     "name": "忠厚本分",
     "category": "ACQUIRED",
     "tier": 1,
+    "tags": ["social", "divine"],
     "description": "恪盡職守，拒絕參與任何形式的背叛與陰謀。",
     "modifiers": {
       "loyalty": 0.3
@@ -25,6 +27,7 @@
     "name": "商隊護衛經驗",
     "category": "ACQUIRED",
     "tier": 1,
+    "tags": ["melee", "defense", "adapt"],
     "description": "熟悉荒野商路與強盜習性，護送貨物時遭遇突襲機率顯著下降。",
     "modifiers": {
       "ambush_evasion": 0.2
@@ -35,6 +38,7 @@
     "name": "野心家",
     "category": "ACQUIRED",
     "tier": 2,
+    "tags": ["social", "dark", "leadership"],
     "description": "對權力、財富或地位有著難以遏制的貪戀，隨時準備伺機篡奪上位。",
     "modifiers": {
       "conspiracy_drive": 0.5,
@@ -46,6 +50,7 @@
     "name": "百戰直覺",
     "category": "ACQUIRED",
     "tier": 2,
+    "tags": ["melee", "defense", "adapt"],
     "description": "從數十場血戰修羅場中生還凝聚的戰鬥本能，免疫初級恐慌並提高格擋。",
     "modifiers": {
       "panic_immunity": 1.0,
@@ -57,9 +62,46 @@
     "name": "戰術推演之眼",
     "category": "ACQUIRED",
     "tier": 2,
+    "tags": ["social", "tech", "leadership"],
     "description": "擅長縱覽全局地形與兵線，軍隊作戰時能為全軍提供攻擊陣型修正。",
     "modifiers": {
       "army_tactics": 0.2
+    }
+  },
+  {
+    "id": "unc_shadow_assassin",
+    "name": "影襲暗殺技法",
+    "category": "ACQUIRED",
+    "tier": 2,
+    "tags": ["melee", "dark", "speed"],
+    "description": "潛行匿蹤與喉間一擊的致命秘術，在暗處伏擊時爆擊傷害倍增。",
+    "modifiers": {
+      "stealth_ambush": 0.35,
+      "crit_damage": 0.40
+    }
+  },
+  {
+    "id": "unc_overclock_reflex",
+    "name": "超頻作戰反應",
+    "category": "ACQUIRED",
+    "tier": 2,
+    "tags": ["tech", "cyber", "speed"],
+    "description": "長期注射神經興奮劑或受生化改造形成的條件反射，短暫進入子彈時間。",
+    "modifiers": {
+      "evasion": 0.25,
+      "ranged_accuracy": 0.20
+    }
+  },
+  {
+    "id": "unc_iron_will",
+    "name": "鋼鐵不屈意志",
+    "category": "ACQUIRED",
+    "tier": 2,
+    "tags": ["defense", "divine", "psionic"],
+    "description": "經歷極限苦痛錘鍊出的磐石精神，面對心靈控制或恐懼詛咒時堅不可摧。",
+    "modifiers": {
+      "psionic_defense": 0.30,
+      "pain_suppression": 0.40
     }
   },
   {
@@ -67,6 +109,7 @@
     "name": "劍聖無我心境",
     "category": "ACQUIRED",
     "tier": 3,
+    "tags": ["melee", "qi", "speed"],
     "description": "一生唯精唯一浸淫劍道，人劍合一，出劍速度超越肉眼捕捉極限。",
     "modifiers": {
       "attack_speed": 1.4,
@@ -78,9 +121,59 @@
     "name": "博雅哲學真知",
     "category": "ACQUIRED",
     "tier": 3,
+    "tags": ["social", "divine", "mind"],
     "description": "窮究古今哲學典籍，能以無懈可擊的邏輯辯倒世俗君主與學者。",
     "modifiers": {
       "debate_persuasion": 0.45
+    }
+  },
+  {
+    "id": "rare_monopoly_baron",
+    "name": "托拉斯寡頭手腕",
+    "category": "ACQUIRED",
+    "tier": 3,
+    "tags": ["social", "commerce"],
+    "description": "洞悉大宗物資流通規律，可透過操縱囤積與期貨使整座城市的物價產生波動。",
+    "modifiers": {
+      "trade_profit": 0.30,
+      "market_influence": 0.40
+    }
+  },
+  {
+    "id": "rare_thunder_strike_art",
+    "name": "九天驚雷斷嶽斬",
+    "category": "ACQUIRED",
+    "tier": 3,
+    "tags": ["lightning", "qi", "melee"],
+    "description": "東方雷修與重劍融合的絕學，出招夾帶天雷霹靂，可震麻重甲戰士全身神經。",
+    "modifiers": {
+      "lightning_damage": 1.35,
+      "stun_chance": 0.25
+    }
+  },
+  {
+    "id": "rare_blood_berserk",
+    "name": "沸血狂化本能",
+    "category": "ACQUIRED",
+    "tier": 3,
+    "tags": ["melee", "dark", "beast"],
+    "description": "傷口流出的鮮血會刺激神經分泌海量內啡肽，生命值越低攻擊力越恐怖。",
+    "modifiers": {
+      "low_hp_attack_scale": 1.60,
+      "pain_immunity": 1.0
+    },
+    "corruption_delta": 4.0
+  },
+  {
+    "id": "rare_quantum_intuition",
+    "name": "量子直覺",
+    "category": "ACQUIRED",
+    "tier": 3,
+    "tags": ["tech", "psionic", "star"],
+    "description": "【史前文明彩蛋】大腦在微觀層面感應或然率塌縮，直覺避開最危險的因果分支。",
+    "modifiers": {
+      "luck_boost": 0.3,
+      "trap_detection": 0.5
     }
   },
   {
@@ -88,6 +181,7 @@
     "name": "萬軍統帥·大軍神",
     "category": "ACQUIRED",
     "tier": 4,
+    "tags": ["social", "leadership", "melee"],
     "description": "橫掃大陸未嘗一敗的傳奇帥才，其軍旗所指之處，敵軍未戰先怯三成。",
     "modifiers": {
       "army_morale_damage": 1.5,
@@ -95,24 +189,51 @@
     }
   },
   {
+    "id": "mystic_warp_sorcery",
+    "name": "亞空間靈能狂瀾",
+    "category": "ACQUIRED",
+    "tier": 4,
+    "tags": ["warp", "psionic", "dark"],
+    "description": "直接撕開物質宇宙與亞空間的帷幕，召喚熾烈混沌靈能風暴焚燒萬物。",
+    "modifiers": {
+      "warp_spell_power": 1.80,
+      "armor_ignore": 0.50
+    },
+    "corruption_delta": 15.0
+  },
+  {
+    "id": "mystic_nihilist_apathy",
+    "name": "虛無之境·滅度冷寂",
+    "category": "ACQUIRED",
+    "tier": 4,
+    "tags": ["void", "dark", "defense"],
+    "description": "心靈徹底歸於死寂的超然狀態，免疫一切心理恐慌、魅惑與精神衝擊。",
+    "modifiers": {
+      "mental_immunity": 1.0,
+      "damage_dampening": 0.25
+    }
+  },
+  {
     "id": "epic_fate_weaver",
     "name": "因果織命者",
     "category": "ACQUIRED",
     "tier": 5,
+    "tags": ["void", "star", "divine"],
     "description": "在無數歷史分歧中參透宿命絲線，能以微小行動引發翻天覆地的因果海嘯。",
     "modifiers": {
       "causality_manipulation": 2.0
     }
   },
   {
-    "id": "rare_quantum_intuition",
-    "name": "量子直覺",
+    "id": "epic_singularity_strategist",
+    "name": "智械群星算力矩陣",
     "category": "ACQUIRED",
-    "tier": 3,
-    "description": "【史前文明彩蛋】大腦在微觀層面感應或然率塌縮，直覺避開最危險的因果分支。",
+    "tier": 5,
+    "tags": ["tech", "cyber", "star"],
+    "description": "意識與戴森球超算中心同步，每一秒推演數百億星系戰略模型，預判所有敵對行動。",
     "modifiers": {
-      "luck_boost": 0.3,
-      "trap_detection": 0.5
+      "omniscience_prediction": 1.0,
+      "fleet_command_efficiency": 3.0
     }
   }
 ]

@@ -2,22 +2,45 @@
   name: 荒野染血馬刀
   category: ARTIFACT
   tier: 1
+  tags: ["melee", "organic"]
   description: 粗鐵打造的邊境馬刀，雖有缺口，但足夠致命。
   modifiers:
     attack_power: 1.05
+
+- id: reg_iron_buckler
+  name: 鍛鐵精工圓盾
+  category: ARTIFACT
+  tier: 1
+  tags: ["defense", "melee"]
+  description: 沉重但可靠的熟鐵圓盾，能有效格擋流矢與近身刀劍劈砍。
+  modifiers:
+    block_rate: 0.15
+    ranged_cover: 0.10
 
 - id: unc_mithril_dagger
   name: 秘銀破法短匕
   category: ARTIFACT
   tier: 2
+  tags: ["melee", "divine", "penetration"]
   description: 摻入秘銀的精巧刺刃，專門刺穿魔法與護體氣勁。
   modifiers:
     magic_pierce: 0.25
+
+- id: unc_plasma_pistol
+  name: 戰術過載等離子手槍
+  category: ARTIFACT
+  tier: 2
+  tags: ["tech", "fire", "ranged"]
+  description: 緊湊型磁約束等離子槍，射擊噴發數千度過熱電漿，能融化普通板甲。
+  modifiers:
+    plasma_damage: 1.25
+    armor_melt: 0.20
 
 - id: rare_excalibur_shard
   name: 誓約聖劍殘刃
   category: ARTIFACT
   tier: 3
+  tags: ["divine", "melee", "courage"]
   description: 亞瑟王傳說中湖中聖劍的斷片，金色的榮光能庇佑持有者不受邪祟侵染。
   modifiers:
     holy_damage: 1.30
@@ -27,23 +50,58 @@
   name: 太極八卦乾坤鏡
   category: ARTIFACT
   tier: 3
+  tags: ["qi", "divine", "psionic"]
   description: 東方道門掌教親手煉製的青銅寶鏡，可照破一切虛妄偽裝與隱形。
   modifiers:
     illusion_pierce: 1.0
+
+- id: rare_nanite_inject_glove
+  name: 醫療型奈米注射手套
+  category: ARTIFACT
+  tier: 3
+  tags: ["tech", "cyber", "recovery"]
+  description: 醫療兵專用戰地外骨骼手套，能瞬間向創口注射合成凝血奈米凝膠。
+  modifiers:
+    instant_healing: 1.35
+    stabilize_ally: 1.0
+
+- id: rare_eldritch_beacon
+  name: 蠕行混沌信標
+  category: ARTIFACT
+  tier: 3
+  tags: ["dark", "warp", "void"]
+  description: 由非歐幾里得黑曜石雕刻而成的不可名狀信標，向四周持續散播瘋狂囈語。
+  modifiers:
+    warp_resonance: 1.40
+    confusion_aura: 0.30
+  corruption_delta: 6.0
 
 - id: mystic_mage_forbidden_tome
   name: 古源魔法禁忌手稿
   category: ARTIFACT
   tier: 4
+  tags: ["psionic", "dark", "void"]
   description: 數百年前魔法師族群被圍剿時遺留下的羊皮殘卷，記載著強行篡改生命本質的密文。
   modifiers:
     imprint_efficiency: 1.40
     mental_stability: -0.10
+  corruption_delta: 8.0
+
+- id: mystic_chronos_hourglass
+  name: 逆時流轉之沙漏
+  category: ARTIFACT
+  tier: 4
+  tags: ["time", "void", "divine"]
+  description: 封印著原初時間之沙的神秘沙漏，可在生死一瞬將自身狀態回退 3 秒前。
+  modifiers:
+    temporal_reset: 1.0
+    evasion: 0.30
 
 - id: epic_first_awakened_staff
   name: 原初覺醒者的時空手杖
   category: ARTIFACT
   tier: 5
+  tags: ["void", "star", "time"]
   description: 原初覺醒者「伊爾」漫步於無數毀滅世界時攜帶的手杖，杖頭鑲嵌著一顆靜止的時間碎鑽。
   modifiers:
     all_essence_resonance: 2.0
@@ -53,7 +111,18 @@
   name: 微型引力奇點核心
   category: ARTIFACT
   tier: 5
+  tags: ["void", "tech", "star"]
   description: 【史前文明彩蛋】上古某次文明輪迴中用以熄滅恆星的冷寂殘骸，周遭重力因力場扭曲而浮空。
   modifiers:
     gravitational_shield: 0.60
     spatial_crush: 2.50
+
+- id: epic_dyson_battery
+  name: 戴森球恆星拘束匣
+  category: ARTIFACT
+  tier: 5
+  tags: ["star", "tech", "fire"]
+  description: 微型次元儲存匣，內部壓縮著一顆年輕恆星的聚變光熱，擁有無限能量供應。
+  modifiers:
+    infinite_energy: 1.0
+    radiant_blast: 3.0

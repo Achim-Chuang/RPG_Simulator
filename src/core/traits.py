@@ -4,7 +4,7 @@ Trait definitions, Mage ranks, and exponential load constants.
 
 from enum import IntEnum, Enum
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 
 class Tier(IntEnum):
@@ -147,6 +147,9 @@ class Trait:
     description: str
     modifiers: Dict[str, float] = field(default_factory=dict)
     corruption_delta: float = 0.0  # 刻印或啟用時影響的靈魂腐化變動值 (+為混沌/黑暗面, -為聖潔/光明面)
+    tags: List[str] = field(default_factory=list)  # 語意標籤 (例如: ["melee", "fire", "psionic", "tech"])
+    parents: List[str] = field(default_factory=list)  # 合成溯源 (紀錄由哪些母詞條 ID 融合而成)
+    is_synthetic: bool = False  # 是否為動態即時生成之自創詞條
 
     @property
     def base_load(self) -> float:
@@ -164,7 +167,10 @@ class Trait:
             "tier": int(self.tier),
             "description": self.description,
             "modifiers": self.modifiers,
-            "corruption_delta": self.corruption_delta
+            "corruption_delta": self.corruption_delta,
+            "tags": self.tags,
+            "parents": self.parents,
+            "is_synthetic": self.is_synthetic
         }
 
     @classmethod
@@ -176,5 +182,8 @@ class Trait:
             tier=Tier(data["tier"]),
             description=data["description"],
             modifiers=data.get("modifiers", {}),
-            corruption_delta=float(data.get("corruption_delta", 0.0))
+            corruption_delta=float(data.get("corruption_delta", 0.0)),
+            tags=list(data.get("tags", [])),
+            parents=list(data.get("parents", [])),
+            is_synthetic=bool(data.get("is_synthetic", False))
         )

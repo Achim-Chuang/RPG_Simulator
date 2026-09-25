@@ -52,8 +52,31 @@ class Character:
         self.acquired_traits: List[Trait] = []
         self.imprinted_traits: List[Trait] = []
 
+        # 自創/動態合成詞條庫 (專屬於該個體，存檔於個體存檔中，不污染全域 Defs)
+        self.custom_traits: Dict[str, Trait] = {}
+
         # 精神力
         self.current_mp: float = self.max_mp
+
+        # 社會身份與日常職業
+        self.gender: str = "male"                       # "male" 或 "female"
+        self.age: int = 20                              # 年齡
+        self.profession_id: str = "prof_adventurer"     # 職業 ID
+        self.is_alive: bool = True                      # 生死狀態
+
+        # 家族、婚姻與譜系鏈條
+        self.spouse_id: Optional[str] = None           # 配偶 ID
+        self.parent_ids: List[str] = []                # 父母 ID [father_id, mother_id]
+        self.children_ids: List[str] = []              # 子女 ID 清單
+
+        # 懷孕生育機制
+        self.pregnancy_timer: int = 0                  # 懷孕倒數 (天)
+        self.pregnancy_partner_id: Optional[str] = None
+
+    @property
+    def all_traits(self) -> List[Trait]:
+        """返回角色擁有的全部詞條（先天 + 後天 + 刻印 + 自創）"""
+        return self.innate_traits + self.acquired_traits + self.imprinted_traits + list(self.custom_traits.values())
 
     @property
     def rank_def(self) -> MageRankDef:
@@ -172,6 +195,18 @@ class Character:
             f"  - 當前常駐負荷降至: {load:.1f}/{target.max_mp:.1f} ({target.stress_ratio*100:.1f}%) [{state.value}]"
         )
 
+    def register_custom_trait(self, trait: Trait) -> None:
+        """註冊角色專屬之動態自創/合成詞條"""
+        self.custom_traits[trait.id] = trait
+
+    def get_trait(self, trait_id: str, world_registry: Optional[Dict[str, Trait]] = None) -> Optional[Trait]:
+        """優先自角色的專屬詞條庫查找，若無則查找全域詞條庫"""
+        if trait_id in self.custom_traits:
+            return self.custom_traits[trait_id]
+        if world_registry and trait_id in world_registry:
+            return world_registry[trait_id]
+        return None
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "char_id": self.char_id,
@@ -185,6 +220,16 @@ class Character:
             "rest_accumulated": self.rest_accumulated,
             "current_mp": self.current_mp,
             "corruption": self.corruption,
+            "gender": self.gender,
+            "age": self.age,
+            "profession_id": self.profession_id,
+            "is_alive": self.is_alive,
+            "spouse_id": self.spouse_id,
+            "parent_ids": self.parent_ids,
+            "children_ids": self.children_ids,
+            "pregnancy_timer": self.pregnancy_timer,
+            "pregnancy_partner_id": self.pregnancy_partner_id,
+            "custom_traits": [t.to_dict() for t in self.custom_traits.values()],
             "innate_traits": [t.id for t in self.innate_traits],
             "acquired_traits": [t.id for t in self.acquired_traits],
             "imprinted_traits": [t.id for t in self.imprinted_traits]
@@ -206,14 +251,41 @@ class Character:
         char.current_mp = data.get("current_mp", char.max_mp)
         char.corruption = float(data.get("corruption", 0.0))
 
+        # 社會身份與生命週期還原
+        char.gender = data.get("gender", "male")
+        char.age = data.get("age", 20)
+        char.profession_id = data.get("profession_id", "prof_adventurer")
+        char.is_alive = data.get("is_alive", True)
+        char.spouse_id = data.get("spouse_id")
+        char.parent_ids = list(data.get("parent_ids", []))
+        char.children_ids = list(data.get("children_ids", []))
+        char.pregnancy_timer = data.get("pregnancy_timer", 0)
+        char.pregnancy_partner_id = data.get("pregnancy_partner_id")
+
+        # 1. 先還原角色的專屬自創詞條
+        for ct_data in data.get("custom_traits", []):
+            ct = Trait.from_dict(ct_data)
+            char.register_custom_trait(ct)
+
+        # 2. 槽位解析器 (支援全域與個體自創詞條)
+        def resolve_trait(tid: str) -> Optional[Trait]:
+            if tid in char.custom_traits:
+                return char.custom_traits[tid]
+            if tid in trait_registry:
+                return trait_registry[tid]
+            return None
+
         for tid in data.get("innate_traits", []):
-            if tid in trait_registry:
-                char.innate_traits.append(trait_registry[tid])
+            t = resolve_trait(tid)
+            if t:
+                char.innate_traits.append(t)
         for tid in data.get("acquired_traits", []):
-            if tid in trait_registry:
-                char.acquired_traits.append(trait_registry[tid])
+            t = resolve_trait(tid)
+            if t:
+                char.acquired_traits.append(t)
         for tid in data.get("imprinted_traits", []):
-            if tid in trait_registry:
-                char.imprinted_traits.append(trait_registry[tid])
+            t = resolve_trait(tid)
+            if t:
+                char.imprinted_traits.append(t)
 
         return char

@@ -64,6 +64,7 @@ class SocialNetwork:
         rel.affection = max(-100.0, min(100.0, rel.affection + d_aff))
         rel.respect = max(-100.0, min(100.0, rel.respect + d_resp))
         rel.obligation = max(-100.0, min(100.0, rel.obligation + d_ob))
+        return rel
 
     def to_dict(self) -> List[Dict[str, Any]]:
         return [rel.to_dict() for rel in self.matrix.values()]

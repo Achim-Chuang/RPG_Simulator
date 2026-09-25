@@ -165,6 +165,7 @@ class DefDatabase:
     def __init__(self):
         self.trait_defs: Dict[str, Trait] = {}
         self.scenario_defs: Dict[str, Dict[str, Any]] = {}
+        self.profession_defs: Dict[str, Dict[str, Any]] = {}
 
     def register_trait(self, trait: Trait):
         self.trait_defs[trait.id] = trait
@@ -174,11 +175,19 @@ class DefDatabase:
         if s_id:
             self.scenario_defs[s_id] = scenario_data
 
+    def register_profession(self, prof_data: Dict[str, Any]):
+        p_id = prof_data.get("id")
+        if p_id:
+            self.profession_defs[p_id] = prof_data
+
     def get_trait(self, trait_id: str) -> Optional[Trait]:
         return self.trait_defs.get(trait_id)
 
     def get_scenario(self, scenario_id: str) -> Optional[Dict[str, Any]]:
         return self.scenario_defs.get(scenario_id)
+
+    def get_profession(self, prof_id: str) -> Optional[Dict[str, Any]]:
+        return self.profession_defs.get(prof_id)
 
 
 # ==============================================================================
@@ -225,8 +234,20 @@ class DefLoader:
                                 continue
                             def_type = item.get("def_type", "").lower()
                             
-                            # 若無指定 def_type，依路徑或欄位自動推斷
-                            if def_type == "trait" or "traits" in dirpath.lower() or "base_load" in item or "tier" in item:
+                            # 1. 優先檢驗職業定義
+                            if def_type == "profession" or "professions" in dirpath.lower() or "base_daily_wage" in item or "routines" in item:
+                                self.db.register_profession(item)
+                                p_id = item.get("id", "unknown")
+                                logs.append(f"[載入職業] 《{item.get('name', p_id)}》 (ID: {p_id}) 来自 {fname}")
+
+                            # 2. 劇本定義
+                            elif def_type == "scenario" or "scenarios" in dirpath.lower() or "starting_player" in item:
+                                self.db.register_scenario(item)
+                                s_id = item.get("id", item.get("scenario_id", "unknown"))
+                                logs.append(f"[載入劇本] 《{item.get('name', s_id)}》 (ID: {s_id}) 来自 {fname}")
+
+                            # 3. 詞條定義
+                            elif def_type == "trait" or "traits" in dirpath.lower() or "base_load" in item or "tier" in item:
                                 category_str = item.get("category", "ACQUIRED").upper()
                                 category = Category[category_str] if category_str in Category.__members__ else Category.ACQUIRED
                                 raw_tier = item.get("tier", 1)
@@ -243,15 +264,11 @@ class DefLoader:
                                     tier=Tier(tier_val),
                                     description=item.get("description", ""),
                                     modifiers=item.get("modifiers", {}),
-                                    corruption_delta=float(item.get("corruption_delta", 0.0))
+                                    corruption_delta=float(item.get("corruption_delta", 0.0)),
+                                    tags=list(item.get("tags", []))
                                 )
                                 self.db.register_trait(trait)
                                 logs.append(f"[載入詞條] 【{trait.tier}】{trait.name} (ID: {trait.id}) 来自 {fname}")
-
-                            elif def_type == "scenario" or "scenarios" in dirpath.lower() or "starting_player" in item:
-                                self.db.register_scenario(item)
-                                s_id = item.get("id", item.get("scenario_id", "unknown"))
-                                logs.append(f"[載入劇本] 《{item.get('name', s_id)}》 (ID: {s_id}) 来自 {fname}")
 
                     except Exception as e:
                         logs.append(f"[載入失敗] 檔案 {fname} 解析錯誤: {str(e)}")
@@ -269,9 +286,11 @@ class DefLoader:
 
         world = WorldState()
 
-        # 1. 注入已載入的所有詞條庫
+        # 1. 注入已載入的所有詞條庫與職業庫
         for trait in self.db.trait_defs.values():
             world.register_trait(trait)
+        for prof in self.db.profession_defs.values():
+            world.register_profession(prof)
 
         # 2. 建立日曆
         cal_data = sc_data.get("calendar", {})
