@@ -1,0 +1,47 @@
+- id: wh_astartes_organs
+  name: "阿斯塔特·十九道改造器官"
+  category: "INNATE"
+  tier: "Rare"
+  description: "帝國阿斯塔特修會的基因種子改造，具備黑色守精與雙心臟，身軀如精金般強韌。"
+  modifiers:
+    atk: 25
+    def_val: 30
+    max_hp: 500
+
+- id: wh_void_shield_belt
+  name: "個人偏轉虛空盾發生器"
+  category: "ARTIFACT"
+  tier: "Rare"
+  description: "機械修會鑄造的古老便攜式虛空盾腰帶，能張開一層將宏觀動能轉移至亞空間的防護力場。"
+  modifiers:
+    shield: 60
+    max_shield: 60
+
+- id: wh_warp_lightning
+  name: "亞空間靈能閃電"
+  category: "ACQUIRED"
+  tier: "Rare"
+  description: "撕裂物質界帷幕引導出的毀滅雷霆，能貫穿敵陣，但會讓靈魂受到亞空間混沌侵蝕。"
+  corruption_delta: 15.0
+  modifiers:
+    atk: 45
+    armor_penetration: 15
+
+- id: wh_inquisitor_rosette
+  name: "審判官純潔符印"
+  category: "ARTIFACT"
+  tier: "Mystic"
+  description: "帝皇之名鐫刻的神聖信物，能驅散靈魂中的污穢雜質，洗滌受到誘惑的心智。"
+  corruption_delta: -25.0
+  modifiers:
+    def_val: 15
+
+- id: wh_daemon_blade
+  name: "恐虐嗜血魔刃"
+  category: "ARTIFACT"
+  tier: "Mystic"
+  description: "封印了高階亞空間嗜血惡魔的利刃，削鐵如泥，但每次揮舞都在瘋狂蠶食使用者的理智與靈魂。"
+  corruption_delta: 35.0
+  modifiers:
+    atk: 65
+    armor_penetration: 30

@@ -1,0 +1,17 @@
+- id: rare_fox_charm
+  name: 天狐媚骨
+  category: INNATE
+  tier: 3
+  description: 東方古老九尾狐遺傳的隱性媚相，一顰一笑皆能動搖凡人心神。
+  modifiers:
+    persuasion: 1.35
+    intimidation: 0.85
+
+- id: mystic_asura_aura
+  name: 修羅煞氣本體
+  category: INNATE
+  tier: 4
+  description: 來自東方冥府戰場的阿修羅修羅血脈，殺意化作實質罡氣護體。
+  modifiers:
+    damage_boost: 1.40
+    fear_aura: 1.30

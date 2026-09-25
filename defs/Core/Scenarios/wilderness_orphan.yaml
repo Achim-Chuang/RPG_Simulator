@@ -1,0 +1,46 @@
+id: scenario_wilderness_orphan
+name: 荒野孤兒·覺醒者崛起
+description: 身為荒野遺孤，在一次險死還生的捕獵中覺醒了看穿「萬物詞條本質」的禁忌之眼。歷史的暗湧正向你湧來。
+def_type: scenario
+
+calendar:
+  starting_day: 1
+
+starting_player:
+  id: hero_orphan
+  name: 無名少年
+  mage_rank: Chorji
+  is_awakened: true
+  starting_gold: 45
+  innate_traits:
+    - reg_human_body
+  acquired_traits:
+    - reg_street_smart
+
+starting_npcs:
+  - id: npc_galahad
+    name: 盲眼老兵·加拉哈
+    mage_rank: Chorji
+    is_awakened: false
+    gold: 30
+    innate_traits:
+      - reg_human_body
+    acquired_traits:
+      - unc_veteran_instinct
+      - reg_faithful
+
+starting_organizations:
+  - id: org_border_kingdom
+    name: 神聖洛蘭帝國·北境要塞
+    tier: 5
+    leader_id: npc_border_duke
+    fief_name: 黑石隘口要塞
+    fief_monthly_income: 3000
+    treasury: 12000
+
+starting_relationships:
+  - from_id: npc_galahad
+    to_id: hero_orphan
+    affection: 25
+    respect: 15
+    obligation: 10

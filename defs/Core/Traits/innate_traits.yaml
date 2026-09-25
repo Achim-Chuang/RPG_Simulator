@@ -1,0 +1,126 @@
+- id: reg_human_body
+  name: 人類常態之軀
+  category: INNATE
+  tier: 1
+  description: 大陸最常見的凡人體質，各項指標平衡且具備出色的環境適應力。
+  modifiers:
+    adaptation: 1.1
+
+- id: reg_nomad_blood
+  name: 荒原游牧血統
+  category: INNATE
+  tier: 1
+  description: 世代生活於惡劣風沙環境中的游民血脈，耐渴與耐飢能力極強。
+  modifiers:
+    hunger_resistance: 1.25
+
+- id: unc_half_elf_vision
+  name: 半精靈敏銳感知
+  category: INNATE
+  tier: 2
+  description: 遺傳自精靈先祖的微弱血脈，在昏暗環境中擁有極佳的視力與直覺。
+  modifiers:
+    night_vision: 1.25
+    accuracy: 1.10
+
+- id: unc_orc_strength
+  name: 獸人蠻力
+  category: INNATE
+  tier: 2
+  description: 狂野蠻橫的氣血，單臂具備推倒巨石的破壞力。
+  modifiers:
+    physical_power: 1.20
+
+- id: unc_dwarf_forge_heart
+  name: 矮人熔火地心
+  category: INNATE
+  tier: 2
+  description: 誕生於地下火山深處的地底種族骨相，天生對高溫與火焰具備高抗性。
+  modifiers:
+    fire_resistance: 1.40
+
+- id: rare_olympian_scion
+  name: 奧林匹斯半神骨相
+  category: INNATE
+  tier: 3
+  description: 遙遠希臘神話中諸神留在凡間的隱性血脈，筋骨宛若青銅雕塑般完美。
+  modifiers:
+    all_stats: 1.15
+    intimidation: 1.20
+
+- id: rare_valkyrie_vigor
+  name: 女武神英靈氣魄
+  category: INNATE
+  tier: 3
+  description: 北歐瓦爾哈拉女武神的祝福，在受傷瀕死時反而會激發極限戰意。
+  modifiers:
+    berserk_threshold: 1.30
+    courage: 1.50
+
+- id: rare_garuda_wings
+  name: 金翅大鵬真形
+  category: INNATE
+  tier: 3
+  description: 東方神話中搏龍而食的迦樓羅大鵬血脈，奔行如疾風掣電。
+  modifiers:
+    speed: 1.35
+
+- id: mystic_ouroboros_cycle
+  name: 銜尾蛇因果環
+  category: INNATE
+  tier: 4
+  description: 埃及與諾斯底神話中無始無終的神蛇，能將致命傷害逆轉為時間回溯。
+  modifiers:
+    fatal_wound_evasion: 0.25
+
+- id: mystic_fenrir_god_bite
+  name: 芬里爾噬神骨
+  category: INNATE
+  tier: 4
+  description: 吞噬北歐眾神之王奧丁的魔狼之骨，攻擊自帶撕裂神聖護甲的深淵破壞力。
+  modifiers:
+    armor_pierce: 0.40
+    bleed_inflict: 1.50
+
+- id: mystic_asura_wrath
+  name: 阿修羅修羅道本相
+  category: INNATE
+  tier: 4
+  description: 佛經神話中好戰嗜殺的神道化身，殺氣凝結為護體黑蓮。
+  modifiers:
+    attack_power: 1.45
+    fear_aura: 1.30
+
+- id: epic_primordial_chaos
+  name: 混沌母體創世真血
+  category: INNATE
+  tier: 5
+  description: 宇宙誕生最初的一縷濁氣與靈華，肉身不受世間任何自然五行法術傷損。
+  modifiers:
+    elemental_immunity: 1.0
+
+- id: epic_immortal_origin
+  name: 不朽大道真果
+  category: INNATE
+  tier: 5
+  description: 跳出三界外、不在五行中的東方長生真諦，壽元鎖死，無病無衰。
+  modifiers:
+    lifespan_infinite: 1.0
+
+- id: mystic_nanite_bloodstream
+  name: 奈米機械血脈
+  category: INNATE
+  tier: 4
+  description: 【史前文明彩蛋】前代超凡者改造留存的銀色奈米集群，以分子級速度主動重構肉身創傷。
+  modifiers:
+    cellular_regeneration: 2.0
+    poison_purge: 1.0
+
+- id: epic_neural_singularity
+  name: 神經奇點網絡
+  category: INNATE
+  tier: 5
+  description: 【史前文明彩蛋】植入靈魂的量子計算神經元，微秒內完成億萬次推演，反應速度超越光速。
+  modifiers:
+    reaction_speed: 3.0
+    computation: 999.0

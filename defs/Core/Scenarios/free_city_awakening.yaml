@@ -1,0 +1,61 @@
+id: scenario_free_city_awakening
+name: 自由之都與荒野甦醒
+description: 你是荒野遺孤，在一次重傷高燒中昏迷於荒涼死地。幸運的是，一支前往著名「自由城邦·奧斯提亞」的商隊發現了你，將你帶上大篷車救入城中。在城邦客棧中甦醒時，你的眼眸中浮現出了世間萬物的浮光詞條……
+def_type: scenario
+
+settings:
+  default_scale: STANDARD
+  free_city_name: 自由城邦·奧斯提亞
+
+calendar:
+  starting_day: 1
+
+starting_player:
+  id: player_hero
+  name: 無名少年 (主角)
+  mage_rank: Chorji
+  is_awakened: true
+  starting_gold: 50
+  innate_traits:
+    - reg_human_body
+    - reg_nomad_blood
+  acquired_traits:
+    - reg_street_smart
+
+starting_npcs:
+  - id: npc_caravan_thomas
+    name: 商隊首領·托馬斯
+    mage_rank: Chorji
+    is_awakened: false
+    gold: 400
+    innate_traits:
+      - reg_human_body
+    acquired_traits:
+      - reg_caravan_escort
+      - reg_faithful
+
+starting_organizations:
+  - id: org_free_city
+    name: 自由城邦·奧斯提亞
+    tier: 5
+    leader_id: npc_consul
+    fief_name: 奧斯提亞海灣城
+    fief_monthly_income: 4000
+    treasury: 30000
+  - id: org_caravan_guild
+    name: 北方開拓商隊會社
+    tier: 2
+    leader_id: npc_caravan_thomas
+    treasury: 3500
+
+starting_relationships:
+  - from_id: npc_caravan_thomas
+    to_id: player_hero
+    affection: 35
+    respect: 10
+    obligation: 0
+  - from_id: player_hero
+    to_id: npc_caravan_thomas
+    affection: 50
+    respect: 20
+    obligation: 50

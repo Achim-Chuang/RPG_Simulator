@@ -1,0 +1,35 @@
+- id: sw_force_sensitivity
+  name: "原力敏感天賦"
+  category: "INNATE"
+  tier: "Uncommon"
+  description: "體內含有超常濃度的絕地絕微生體（Midi-chlorians），具備預判危機與微弱隔空移物的直覺。"
+  modifiers:
+    atk: 15
+    def_val: 15
+
+- id: sw_beskar_armor
+  name: "曼達洛純貝斯卡重裝甲"
+  category: "ARTIFACT"
+  tier: "Rare"
+  description: "由純正貝斯卡鋼千錘百鍊鍛造的全身鎧甲，能免疫絕大多數常規爆能束射擊並極大抵抗光劍切割。"
+  modifiers:
+    def_val: 45
+    max_hp: 200
+
+- id: sw_kyber_lightsaber
+  name: "翡翠凱伯光劍"
+  category: "ARTIFACT"
+  tier: "Rare"
+  description: "諧振純淨原力的高能等離子光刃，幾乎無可阻擋，具備極強的高溫穿透切割力。"
+  modifiers:
+    atk: 50
+    armor_penetration: 30
+
+- id: sw_dark_rage
+  name: "西斯狂暴原力"
+  category: "ACQUIRED"
+  tier: "Rare"
+  description: "調動內心的憎恨、恐懼與憤怒轉化為毀滅性的原力爆發，但會讓靈魂迅速滑向原力黑暗面深淵。"
+  corruption_delta: 20.0
+  modifiers:
+    atk: 40

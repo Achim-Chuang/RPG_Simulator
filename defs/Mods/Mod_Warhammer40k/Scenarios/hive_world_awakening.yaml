@@ -1,0 +1,15 @@
+id: scenario_hive_psyker
+name: "戰鎚40K·巢都底層的非法靈能者"
+description: "你身處極限星區百億人口的重工業巢都底層廢墟。你未經黑船檢定私自覺醒了靈能，法務部與審判庭隨時可能發動清洗，唯有建立自己的非法侍從幫派，奪取軌道穿梭機逃出生天。"
+starting_player:
+  id: hero_hive_psyker
+  name: "非法靈能者·羅文"
+  rank_key: "Chorji"
+  gold: 80.0
+  starting_traits:
+    - wh_warp_lightning
+starting_faction:
+  id: faction_inquisition_taskforce
+  name: "神聖異端審判庭·特遣清洗巡邏隊"
+  tier: "CHARTERED"
+  treasury: 15000.0

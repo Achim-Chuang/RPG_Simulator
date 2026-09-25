@@ -1,0 +1,59 @@
+- id: reg_rusty_saber
+  name: 荒野染血馬刀
+  category: ARTIFACT
+  tier: 1
+  description: 粗鐵打造的邊境馬刀，雖有缺口，但足夠致命。
+  modifiers:
+    attack_power: 1.05
+
+- id: unc_mithril_dagger
+  name: 秘銀破法短匕
+  category: ARTIFACT
+  tier: 2
+  description: 摻入秘銀的精巧刺刃，專門刺穿魔法與護體氣勁。
+  modifiers:
+    magic_pierce: 0.25
+
+- id: rare_excalibur_shard
+  name: 誓約聖劍殘刃
+  category: ARTIFACT
+  tier: 3
+  description: 亞瑟王傳說中湖中聖劍的斷片，金色的榮光能庇佑持有者不受邪祟侵染。
+  modifiers:
+    holy_damage: 1.30
+    morale_boost: 0.20
+
+- id: rare_taiji_mirror
+  name: 太極八卦乾坤鏡
+  category: ARTIFACT
+  tier: 3
+  description: 東方道門掌教親手煉製的青銅寶鏡，可照破一切虛妄偽裝與隱形。
+  modifiers:
+    illusion_pierce: 1.0
+
+- id: mystic_mage_forbidden_tome
+  name: 古源魔法禁忌手稿
+  category: ARTIFACT
+  tier: 4
+  description: 數百年前魔法師族群被圍剿時遺留下的羊皮殘卷，記載著強行篡改生命本質的密文。
+  modifiers:
+    imprint_efficiency: 1.40
+    mental_stability: -0.10
+
+- id: epic_first_awakened_staff
+  name: 原初覺醒者的時空手杖
+  category: ARTIFACT
+  tier: 5
+  description: 原初覺醒者「伊爾」漫步於無數毀滅世界時攜帶的手杖，杖頭鑲嵌著一顆靜止的時間碎鑽。
+  modifiers:
+    all_essence_resonance: 2.0
+    time_distortion: 1.5
+
+- id: epic_singularity_core
+  name: 微型引力奇點核心
+  category: ARTIFACT
+  tier: 5
+  description: 【史前文明彩蛋】上古某次文明輪迴中用以熄滅恆星的冷寂殘骸，周遭重力因力場扭曲而浮空。
+  modifiers:
+    gravitational_shield: 0.60
+    spatial_crush: 2.50

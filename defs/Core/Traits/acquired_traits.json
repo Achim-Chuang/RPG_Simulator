@@ -1,0 +1,118 @@
+[
+  {
+    "id": "reg_street_smart",
+    "name": "市井智慧",
+    "category": "ACQUIRED",
+    "tier": 1,
+    "description": "長期在底層摸爬滾打習得的眼色，議價與識破常規謊言更有效。",
+    "modifiers": {
+      "bargaining": 0.1,
+      "lie_detection": 0.15
+    }
+  },
+  {
+    "id": "reg_faithful",
+    "name": "忠厚本分",
+    "category": "ACQUIRED",
+    "tier": 1,
+    "description": "恪盡職守，拒絕參與任何形式的背叛與陰謀。",
+    "modifiers": {
+      "loyalty": 0.3
+    }
+  },
+  {
+    "id": "reg_caravan_escort",
+    "name": "商隊護衛經驗",
+    "category": "ACQUIRED",
+    "tier": 1,
+    "description": "熟悉荒野商路與強盜習性，護送貨物時遭遇突襲機率顯著下降。",
+    "modifiers": {
+      "ambush_evasion": 0.2
+    }
+  },
+  {
+    "id": "unc_ambitious",
+    "name": "野心家",
+    "category": "ACQUIRED",
+    "tier": 2,
+    "description": "對權力、財富或地位有著難以遏制的貪戀，隨時準備伺機篡奪上位。",
+    "modifiers": {
+      "conspiracy_drive": 0.5,
+      "leadership": 0.15
+    }
+  },
+  {
+    "id": "unc_veteran_instinct",
+    "name": "百戰直覺",
+    "category": "ACQUIRED",
+    "tier": 2,
+    "description": "從數十場血戰修羅場中生還凝聚的戰鬥本能，免疫初級恐慌並提高格擋。",
+    "modifiers": {
+      "panic_immunity": 1.0,
+      "block_rate": 0.2
+    }
+  },
+  {
+    "id": "unc_tactician_eye",
+    "name": "戰術推演之眼",
+    "category": "ACQUIRED",
+    "tier": 2,
+    "description": "擅長縱覽全局地形與兵線，軍隊作戰時能為全軍提供攻擊陣型修正。",
+    "modifiers": {
+      "army_tactics": 0.2
+    }
+  },
+  {
+    "id": "rare_sword_saint_intent",
+    "name": "劍聖無我心境",
+    "category": "ACQUIRED",
+    "tier": 3,
+    "description": "一生唯精唯一浸淫劍道，人劍合一，出劍速度超越肉眼捕捉極限。",
+    "modifiers": {
+      "attack_speed": 1.4,
+      "critical_hit": 0.35
+    }
+  },
+  {
+    "id": "rare_philosopher_reason",
+    "name": "博雅哲學真知",
+    "category": "ACQUIRED",
+    "tier": 3,
+    "description": "窮究古今哲學典籍，能以無懈可擊的邏輯辯倒世俗君主與學者。",
+    "modifiers": {
+      "debate_persuasion": 0.45
+    }
+  },
+  {
+    "id": "mystic_grandmaster_dominion",
+    "name": "萬軍統帥·大軍神",
+    "category": "ACQUIRED",
+    "tier": 4,
+    "description": "橫掃大陸未嘗一敗的傳奇帥才，其軍旗所指之處，敵軍未戰先怯三成。",
+    "modifiers": {
+      "army_morale_damage": 1.5,
+      "enemy_surrender_rate": 0.4
+    }
+  },
+  {
+    "id": "epic_fate_weaver",
+    "name": "因果織命者",
+    "category": "ACQUIRED",
+    "tier": 5,
+    "description": "在無數歷史分歧中參透宿命絲線，能以微小行動引發翻天覆地的因果海嘯。",
+    "modifiers": {
+      "causality_manipulation": 2.0
+    }
+  },
+  {
+    "id": "rare_quantum_intuition",
+    "name": "量子直覺",
+    "category": "ACQUIRED",
+    "tier": 3,
+    "description": "【史前文明彩蛋】大腦在微觀層面感應或然率塌縮，直覺避開最危險的因果分支。",
+    "modifiers": {
+      "luck_boost": 0.3,
+      "trap_detection": 0.5
+    }
+  }
+]
